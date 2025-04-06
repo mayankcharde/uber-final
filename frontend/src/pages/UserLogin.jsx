@@ -24,9 +24,17 @@ const UserLogin = () => {
         password: password
       }
 
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/login`, userData, {
-        withCredentials: true
-      })
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/users/login`, 
+        userData, 
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
 
       if (response.status === 200) {
         const data = response.data

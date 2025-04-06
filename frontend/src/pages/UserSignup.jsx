@@ -9,7 +9,7 @@ const UserSignup = () => {
   const [ firstName, setFirstName ] = useState('')
   const [ lastName, setLastName ] = useState('')
   const [ photo, setPhoto] = useState(null)
-  const [ photoPreview, setPhotoPreview] = useState('https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y')
+  const [ photoPreview, setPhotoPreview ] = useState('https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y')
   const [ error, setError ] = useState('')
   const [ loading, setLoading ] = useState(false)
 
@@ -69,13 +69,18 @@ const UserSignup = () => {
       // Log form data for debugging
       console.log('Form Data:', data)
 
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/register`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Accept': 'application/json'
-        },
-        withCredentials: true
-      })
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/users/register`, 
+        formData, 
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json'
+          },
+          withCredentials: true,
+          credentials: 'include'
+        }
+      )
 
       if (response.status === 201) {
         const data = response.data
