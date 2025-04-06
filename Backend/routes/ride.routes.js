@@ -36,9 +36,27 @@ router.get('/start-ride',
 router.post('/end-ride',
     authMiddleware.authCaptain,
     body('rideId').isMongoId().withMessage('Invalid ride id'),
-    rideController.endRide
+    async (req, res, next) => {
+        try {
+            // Your existing end-ride logic
+            // ...
+            res.status(200).json({ message: 'Ride ended successfully' });
+        } catch (error) {
+            next(new Error('Failed to end ride: ' + error.message));
+        }
+    }
 )
 
+// Add specific route for captain riding status
+router.get('/captain-riding/:captainId', async (req, res, next) => {
+    try {
+        // Your captain riding status logic
+        // ...
+        res.status(200).json({ riding: true/false });
+    } catch (error) {
+        next(new Error('Failed to get captain riding status: ' + error.message));
+    }
+});
 
 
 module.exports = router;

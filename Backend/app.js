@@ -20,11 +20,13 @@ app.use(cors({
     origin: [
         'http://localhost:5173', 
         'http://localhost:5174',
-        'https://fantastic-nasturtium-85be57.netlify.app'
+        'https://fantastic-nasturtium-85be57.netlify.app',
+        'https://uber-final-4.onrender.com',
+        'https://uber-final.netlify.app'
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -52,8 +54,27 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error('Error:', err);
+
+    // Handle specific ride errors
+    if (err.name === 'RideError') {
+        return res.status(400).json({
+            status: 'error',
+            message: err.message
+        });
+    }
+
+    // Handle validation errors
+    if (err.name === 'ValidationError') {
+        return res.status(422).json({
+            status: 'error',
+            message: err.message
+        });
+    }
+
+    // Default error response
     res.status(err.status || 500).json({
+        status: 'error',
         message: err.message || 'Internal Server Error',
         ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
