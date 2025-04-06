@@ -1,3 +1,4 @@
+require('dotenv').config();
 const rideModel = require('../models/ride.model');
 const captainModel = require('../models/captain.model');
 const Razorpay = require('razorpay');
@@ -102,4 +103,4 @@ module.exports.verifyPayment = async ({ rideId, razorpay_payment_id, razorpay_or
         success: true,
         message: 'Payment verified successfully'
     };
-}; 
+};
