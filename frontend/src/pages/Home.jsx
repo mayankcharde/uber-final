@@ -223,25 +223,32 @@ const Home = () => {
                 return;
             }
 
-            const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/rides/create`, {
-                pickup,
-                destination,
-                vehicleType
-            }, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
+            const response = await axios.post(
+                `${import.meta.env.VITE_BASE_URL}/api/rides/create`,
+                {
+                    pickup,
+                    destination,
+                    vehicleType
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    withCredentials: true
                 }
-            });
+            );
 
-            if (response.status === 200) {
+            if (response.status === 201) {
                 console.log('Ride created:', response.data);
-                setRide(response.data);  // Set the ride data
+                setRide(response.data);
                 setConfirmRidePanel(false);
                 setVehicleFound(true);
             }
         } catch (error) {
             console.error('Error creating ride:', error);
             alert(error.response?.data?.message || 'Failed to create ride. Please try again.');
+            setVehiclePanel(false);
         }
     }
 

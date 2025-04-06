@@ -1,5 +1,6 @@
 const rideModel = require('../models/ride.model');
 const mapService = require('./maps.service');
+const crypto = require('crypto');
 
 async function getFare(pickup, destination) {
     try {
@@ -63,15 +64,9 @@ async function getFare(pickup, destination) {
 
 module.exports.getFare = getFare;
 
-
 function getOtp(num) {
-    function generateOtp(num) {
-        const otp = crypto.randomInt(Math.pow(10, num - 1), Math.pow(10, num)).toString();
-        return otp;
-    }
-    return generateOtp(num);
+    return crypto.randomInt(100000, 999999).toString();
 }
-
 
 module.exports.createRide = async ({
     user, pickup, destination, vehicleType
@@ -80,19 +75,23 @@ module.exports.createRide = async ({
         throw new Error('All fields are required');
     }
 
-    const fare = await getFare(pickup, destination);
+    try {
+        const fare = await getFare(pickup, destination);
+        const ride = await rideModel.create({
+            user,
+            pickup,
+            destination,
+            otp: getOtp(6),
+            fare: fare[vehicleType],
+            distance: fare.distance.value / 1000,
+            duration: fare.duration.value / 60
+        });
 
-    const ride = rideModel.create({
-        user,
-        pickup,
-        destination,
-        otp: getOtp(6),
-        fare: fare[vehicleType],
-        distance: fare.distance.value / 1000, // Store distance in kilometers
-        duration: fare.duration.value / 60 // Store duration in minutes
-    })
-
-    return ride;
+        return ride;
+    } catch (error) {
+        console.error('Error creating ride:', error);
+        throw new Error(error.message || 'Failed to create ride');
+    }
 }
 
 module.exports.confirmRide = async ({

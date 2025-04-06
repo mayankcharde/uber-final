@@ -4,35 +4,53 @@ const mapService = require('../services/maps.service');
 const { sendMessageToSocketId } = require('../socket');
 const rideModel = require('../models/ride.model');
 
-
 module.exports.createRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { userId, pickup, destination, vehicleType } = req.body;
+    const { pickup, destination, vehicleType } = req.body;
 
     try {
-        const ride = await rideService.createRide({ user: req.user._id, pickup, destination, vehicleType });
-        res.status(201).json(ride);
+        if (!pickup || !destination || !vehicleType) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
 
-        const pickupCoordinates = await mapService.getAddressCoordinate(pickup);
-        const captainsInRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 2);
-
-        // Get ride with user data and include OTP
-        const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user').select('+otp');
-
-        captainsInRadius.map(captain => {
-            sendMessageToSocketId(captain.socketId, {
-                event: 'new-ride',
-                data: rideWithUser
-            })
+        const ride = await rideService.createRide({ 
+            user: req.user._id, 
+            pickup, 
+            destination, 
+            vehicleType 
         });
 
+        const rideWithUser = await rideModel.findOne({ _id: ride._id })
+            .populate('user')
+            .select('+otp');
+
+        const pickupCoordinates = await mapService.getAddressCoordinate(pickup);
+        const captainsInRadius = await mapService.getCaptainsInTheRadius(
+            pickupCoordinates.ltd, 
+            pickupCoordinates.lng, 
+            2
+        );
+
+        captainsInRadius.forEach(captain => {
+            if (captain.socketId) {
+                sendMessageToSocketId(captain.socketId, {
+                    event: 'new-ride',
+                    data: rideWithUser
+                });
+            }
+        });
+
+        res.status(201).json(ride);
     } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: err.message });
+        console.error('Error creating ride:', err);
+        res.status(500).json({ 
+            message: err.message || 'Failed to create ride',
+            error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 };
 
