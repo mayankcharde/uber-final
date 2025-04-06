@@ -1,8 +1,5 @@
 const rideModel = require('../models/ride.model');
 const mapService = require('./maps.service');
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
-const captainModel = require('../models/captain.model');
 
 async function getFare(pickup, destination) {
     try {
